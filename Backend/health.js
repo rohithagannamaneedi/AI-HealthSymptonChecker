@@ -83,10 +83,12 @@ After every response, log total tokens used (prompt + completion).
 `;
 
 
-async function checkSymptoms(input) {
+// ...existing code...
+
+export async function checkSymptoms(input, returnResult = false) {
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini", // or "gpt-4o"
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: input },
@@ -95,12 +97,22 @@ async function checkSymptoms(input) {
       frequency_penalty: 0.5,
     });
 
-    console.log("🩺 Health Assistant Result:");
-    console.log(response.choices[0].message.content);
+    const content = response.choices[0].message.content;
+    if (returnResult) {
+      try {
+        return JSON.parse(content);
+      } catch {
+        return { error: "Could not parse AI response." };
+      }
+    } else {
+      console.log("🩺 Health Assistant Result:");
+      console.log(content);
+    }
   } catch (error) {
+    if (returnResult) return { error: "Error contacting AI service." };
     console.error("Error:", error);
   }
 }
 
-// 👇 Example user input
-checkSymptoms("I just got stabbed in the stomach ");
+// Remove or comment out the example call at the bottom:
+// checkSymptoms("I just got stabbed in the stomach");
